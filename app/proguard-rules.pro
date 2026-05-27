@@ -20,7 +20,8 @@
 -keep class androidx.camera.lifecycle.** { *; }
 -dontwarn androidx.camera.core.**
 -dontwarn androidx.camera.video.**
-
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn javax.annotation.**
 # Androidx Security / Crypto
 -keep class androidx.security.crypto.** { *; }
 -dontwarn androidx.security.crypto.**

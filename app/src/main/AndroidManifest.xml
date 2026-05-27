@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Permissions required for recording -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    
+
     <!-- Permissions for storage -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
@@ -20,32 +20,18 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Remove default WorkManager initializer -->
+    <application android:name=".BaseApplication" android:allowBackup="true" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules" android:icon="@android:drawable/sym_def_app_icon" android:label="@string/app_name" android:roundIcon="@android:drawable/sym_def_app_icon" android:supportsRtl="true" android:theme="@style/Theme.BackgroundVideoRecorder">
+        <provider android:name="androidx.startup.InitializationProvider" android:authorities="${applicationId}.androidx-startup" android:exported="false" tools:node="merge">
 
-    <application
-        android:name=".BaseApplication"
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
-        android:icon="@android:drawable/sym_def_app_icon"
-        android:label="@string/app_name"
-        android:roundIcon="@android:drawable/sym_def_app_icon"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.BackgroundVideoRecorder">
-        
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:theme="@style/Theme.BackgroundVideoRecorder" />
+            <meta-data android:name="androidx.work.WorkManagerInitializer" android:value="androidx.startup" tools:node="remove" />
+
+        </provider>
+
+        <activity android:name=".MainActivity" android:exported="true" android:theme="@style/Theme.BackgroundVideoRecorder" />
 
         <!-- Real app launcher alias (enabled by default) -->
-        <activity-alias
-            android:name=".MainActivityReal"
-            android:targetActivity=".MainActivity"
-            android:label="@string/app_name"
-            android:icon="@android:drawable/sym_def_app_icon"
-            android:roundIcon="@android:drawable/sym_def_app_icon"
-            android:enabled="true"
-            android:exported="true">
+        <activity-alias android:name=".MainActivityReal" android:targetActivity=".MainActivity" android:label="@string/app_name" android:icon="@android:drawable/sym_def_app_icon" android:roundIcon="@android:drawable/sym_def_app_icon" android:enabled="true" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -53,14 +39,7 @@
         </activity-alias>
 
         <!-- Disguise: Calculator -->
-        <activity-alias
-            android:name=".MainActivityCalculator"
-            android:targetActivity=".MainActivity"
-            android:label="Calculator"
-            android:icon="@android:drawable/ic_menu_compass"
-            android:roundIcon="@android:drawable/ic_menu_compass"
-            android:enabled="false"
-            android:exported="true">
+        <activity-alias android:name=".MainActivityCalculator" android:targetActivity=".MainActivity" android:label="Calculator" android:icon="@android:drawable/ic_menu_compass" android:roundIcon="@android:drawable/ic_menu_compass" android:enabled="false" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -68,14 +47,7 @@
         </activity-alias>
 
         <!-- Disguise: Notes -->
-        <activity-alias
-            android:name=".MainActivityNotes"
-            android:targetActivity=".MainActivity"
-            android:label="Notes"
-            android:icon="@android:drawable/ic_menu_edit"
-            android:roundIcon="@android:drawable/ic_menu_edit"
-            android:enabled="false"
-            android:exported="true">
+        <activity-alias android:name=".MainActivityNotes" android:targetActivity=".MainActivity" android:label="Notes" android:icon="@android:drawable/ic_menu_edit" android:roundIcon="@android:drawable/ic_menu_edit" android:enabled="false" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -83,14 +55,7 @@
         </activity-alias>
 
         <!-- Disguise: Calendar -->
-        <activity-alias
-            android:name=".MainActivityCalendar"
-            android:targetActivity=".MainActivity"
-            android:label="Calendar"
-            android:icon="@android:drawable/ic_menu_today"
-            android:roundIcon="@android:drawable/ic_menu_today"
-            android:enabled="false"
-            android:exported="true">
+        <activity-alias android:name=".MainActivityCalendar" android:targetActivity=".MainActivity" android:label="Calendar" android:icon="@android:drawable/ic_menu_today" android:roundIcon="@android:drawable/ic_menu_today" android:enabled="false" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -98,16 +63,10 @@
         </activity-alias>
 
         <!-- Foreground Service for background recording -->
-        <service
-            android:name=".background.service.BackgroundRecordingService"
-            android:foregroundServiceType="camera|microphone"
-            android:exported="false" />
+        <service android:name=".background.service.BackgroundRecordingService" android:foregroundServiceType="camera|microphone" android:exported="false" />
 
         <!-- BroadcastReceiver for scheduled recording via AlarmManager -->
-        <receiver
-            android:name=".background.receiver.ScheduleAlarmReceiver"
-            android:enabled="true"
-            android:exported="false">
+        <receiver android:name=".background.receiver.ScheduleAlarmReceiver" android:enabled="true" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="com.manoj.backgroundvideorecorder.ACTION_START_SCHEDULED_RECORDING" />
@@ -115,41 +74,25 @@
         </receiver>
 
         <!-- Secure File Provider for file sharing -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="com.manoj.backgroundvideorecorder.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
+        <provider android:name="androidx.core.content.FileProvider" android:authorities="com.manoj.backgroundvideorecorder.fileprovider" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
 
         <!-- Quick Settings Tile Service -->
-        <service
-            android:name=".background.service.RecordingTileService"
-            android:label="@string/tile_label"
-            android:icon="@android:drawable/ic_menu_camera"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
-            android:exported="true">
+        <service android:name=".background.service.RecordingTileService" android:label="@string/tile_label" android:icon="@android:drawable/ic_menu_camera" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
 
         <!-- App Widget Provider -->
-        <receiver
-            android:name=".background.receiver.RecordingWidgetProvider"
-            android:label="@string/widget_label"
-            android:exported="false">
+        <receiver android:name=".background.receiver.RecordingWidgetProvider" android:label="@string/widget_label" android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.manoj.backgroundvideorecorder.ACTION_WIDGET_UPDATE" />
                 <action android:name="com.manoj.backgroundvideorecorder.ACTION_WIDGET_TOGGLE" />
             </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/recording_widget_info" />
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/recording_widget_info" />
         </receiver>
 
     </application>
