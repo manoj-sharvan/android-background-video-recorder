@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import java.util.Locale
 import java.io.File
 import androidx.core.app.NotificationCompat
@@ -66,6 +67,7 @@ class BackgroundRecordingService : Service(), LifecycleOwner {
     private var tickJob: Job? = null
     private var lastRecordedDurationSeconds = -1L
     private var lastDurationChangeTimeMs = 0L
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onCreate() {
         dispatcher.onServicePreSuperOnCreate()
@@ -177,6 +179,11 @@ class BackgroundRecordingService : Service(), LifecycleOwner {
     }
 
     private fun startRecordingSession(config: RecordingConfig) {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BVR::RecordingWakeLock").apply {
+            acquire(config.maxDurationMinutes * 60 * 1000L + 10000L) // Timeout slightly after max duration
+        }
+
         fileSegmentCount = 0
         val notification = createNotification("Recording: 00:00:00 | Segments: 0 | Storage Used: 0.00 Bytes")
         startForeground(NOTIFICATION_ID, notification)
@@ -188,6 +195,12 @@ class BackgroundRecordingService : Service(), LifecycleOwner {
     private fun stopRecordingSession() {
         tickJob?.cancel()
         recordingManager.stopRecording()
+        wakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+            }
+        }
+        wakeLock = null
         stopSelf()
     }
 
@@ -321,6 +334,12 @@ class BackgroundRecordingService : Service(), LifecycleOwner {
         AppLogger.i("BackgroundRecordingService: onDestroy")
         tickJob?.cancel()
         recordingManager.stopRecording()
+        wakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+            }
+        }
+        wakeLock = null
         super.onDestroy()
     }
 

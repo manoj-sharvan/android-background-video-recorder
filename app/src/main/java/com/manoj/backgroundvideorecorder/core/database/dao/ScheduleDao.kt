@@ -28,4 +28,7 @@ interface ScheduleDao {
 
     @Delete
     suspend fun deleteSchedule(schedule: ScheduleEntity)
+
+    @Query("UPDATE schedules SET isEnabled = 0 WHERE isEnabled = 1 AND repeatType = 'NONE' AND scheduledTimeMillis < :currentTimeMillis")
+    suspend fun disableExpiredOneTimeSchedules(currentTimeMillis: Long)
 }

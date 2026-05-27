@@ -1,46 +1,29 @@
 package com.manoj.backgroundvideorecorder.features.settings.presentation
 
+import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.content.Intent
+import com.manoj.backgroundvideorecorder.core.designsystem.components.BvrCard
+import com.manoj.backgroundvideorecorder.core.designsystem.components.SectionHeader
+import com.manoj.backgroundvideorecorder.core.designsystem.components.SwitchSettingItem
+import com.manoj.backgroundvideorecorder.core.designsystem.theme.DarkBackground
 
 @Composable
 fun SettingsScreen(
@@ -49,47 +32,28 @@ fun SettingsScreen(
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
     var showQaDashboard by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(DarkBackground)
             .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "App Settings",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp
-            ),
-            modifier = Modifier.padding(vertical = 12.dp)
-        )
+        SectionHeader(title = "App Settings")
 
-        // Camera Options Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            )
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Video Preferences",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
+        // Video Preferences Card
+        BvrCard {
+            Column {
+                SectionHeader(title = "Video Preferences")
 
-                // Video Resolution
                 Text(
                     text = "Video Resolution",
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -135,126 +99,68 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Max Recording Duration Slider
                 Text(
                     text = "Max Recording Duration: ${state.maxRecordingDurationMinutes} min",
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Slider(
                     value = state.maxRecordingDurationMinutes.toFloat(),
                     onValueChange = { viewModel.updateDuration(it.toInt()) },
                     valueRange = 1f..60f,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary
+                    )
                 )
             }
         }
 
         // Stealth & Notification Settings Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            )
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Stealth & Notifications",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 12.dp)
+        BvrCard {
+            Column {
+                SectionHeader(title = "Stealth & Notifications")
+
+                SwitchSettingItem(
+                    title = "Stealth Mode by Default",
+                    description = "Start recording in stealth background mode immediately on app triggers.",
+                    checked = state.runInStealthModeByDefault,
+                    onCheckedChange = { viewModel.updateStealthMode(it) }
                 )
 
-                // Run in Stealth Mode Default
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Stealth Mode by Default",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "Start recording in stealth background mode immediately on app triggers.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = state.runInStealthModeByDefault,
-                        onCheckedChange = { viewModel.updateStealthMode(it) }
-                    )
-                }
+                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                // Show persistent notification icon
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Show Status Notification",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "Keeps a status notification when background capture processes are running (Highly Recommended).",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = state.showNotificationIcon,
-                        onCheckedChange = { viewModel.updateNotificationIcon(it) }
-                    )
-                }
+                SwitchSettingItem(
+                    title = "Show Status Notification",
+                    description = "Keeps a status notification when background capture processes are running (Highly Recommended).",
+                    checked = state.showNotificationIcon,
+                    onCheckedChange = { viewModel.updateNotificationIcon(it) }
+                )
             }
         }
 
-        // Advanced Settings Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            )
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Advanced Capture Options",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
+        // Advanced Capture Options Card
+        BvrCard {
+            Column {
+                SectionHeader(title = "Advanced Capture Options")
 
-                // Split Videos Interval Slider
                 Text(
                     text = "Segment Duration: " + if (state.splitVideosIntervalMinutes == 0) "Disabled" else "${state.splitVideosIntervalMinutes} min",
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Slider(
                     value = state.splitVideosIntervalMinutes.toFloat(),
                     onValueChange = { viewModel.updateSplitInterval(it.toInt()) },
                     valueRange = 0f..30f,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -280,30 +186,16 @@ fun SettingsScreen(
         }
 
         // Storage Retention Settings Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            )
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Storage & Retention Policies",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
+        BvrCard {
+            Column {
+                SectionHeader(title = "Storage & Retention Policies")
 
-                // 1. Quota Limit Slider
                 val maxStorageMbText = if (state.maxStorageMb == 0) "Disabled" else if (state.maxStorageMb >= 1024) "${state.maxStorageMb / 1024} GB" else "${state.maxStorageMb} MB"
                 Text(
                     text = "Storage Quota: $maxStorageMbText",
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Slider(
                     value = when (state.maxStorageMb) {
@@ -329,17 +221,21 @@ fun SettingsScreen(
                     },
                     valueRange = 0f..5f,
                     steps = 4,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary
+                    )
                 )
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 8.dp))
 
-                // 2. Count Limit Slider
                 val maxFileCountText = if (state.maxFileCount == 0) "Disabled" else "${state.maxFileCount} files"
                 Text(
                     text = "Maximum Video Files: $maxFileCountText",
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Slider(
                     value = when (state.maxFileCount) {
@@ -365,17 +261,21 @@ fun SettingsScreen(
                     },
                     valueRange = 0f..5f,
                     steps = 4,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary
+                    )
                 )
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 8.dp))
 
-                // 3. Auto Delete Expiration Policy Slider
                 val autoDeleteText = if (state.autoDeleteDays == 0) "Keep Forever" else if (state.autoDeleteDays == 1) "1 Day" else "${state.autoDeleteDays} Days"
                 Text(
                     text = "Auto-Delete Expiration: $autoDeleteText",
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Slider(
                     value = when (state.autoDeleteDays) {
@@ -397,16 +297,20 @@ fun SettingsScreen(
                     },
                     valueRange = 0f..3f,
                     steps = 2,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary
+                    )
                 )
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 8.dp))
 
-                // 4. Minimum Reserved Space
                 Text(
                     text = "Emergency Reserved Buffer: ${state.minimumReservedSpaceMb} MB",
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Slider(
                     value = when (state.minimumReservedSpaceMb) {
@@ -428,24 +332,18 @@ fun SettingsScreen(
                     },
                     valueRange = 0f..3f,
                     steps = 2,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary
+                    )
                 )
             }
         }
 
-        val context = LocalContext.current
-
         // Battery & OEM Reliability Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            )
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+        BvrCard {
+            Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.BatteryAlert,
@@ -464,7 +362,8 @@ fun SettingsScreen(
                 Text(
                     text = "Device Manufacturer: ${state.deviceManufacturer.uppercase()}",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "Android aggressively terminates background services to save battery. To ensure scheduled recordings or long background video capture works reliably, you must whitelist BVR.",
@@ -483,7 +382,8 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (state.isBatteryOptimizationIgnored) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                    )
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(text = if (state.isBatteryOptimizationIgnored) "Battery Whitelisted" else "Configure Whitelist")
                 }
@@ -504,7 +404,8 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             text = "Configure OEM Auto-Start Settings",
@@ -516,51 +417,30 @@ fun SettingsScreen(
         }
 
         // Diagnostics & System Health Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            )
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.BugReport,
-                        contentDescription = "Diagnostics",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Diagnostics & System Health",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
+        BvrCard {
+            Column {
+                SectionHeader(title = "Diagnostics & System Health")
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "App Memory usage:", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = state.memoryUsageText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    Text(text = "App Memory usage:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = state.memoryUsageText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Battery Status:", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = state.batteryLevelText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    Text(text = "Battery Status:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = state.batteryLevelText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Storage Available:", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = state.storageAvailableText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    Text(text = "Storage Available:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = state.storageAvailableText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
@@ -577,7 +457,8 @@ fun SettingsScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !state.isExporting
+                    enabled = !state.isExporting,
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Share,
@@ -595,7 +476,8 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.error
-                        )
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.BugReport,
@@ -608,6 +490,8 @@ fun SettingsScreen(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         if (showQaDashboard) {
             QaDashboardDialog(
