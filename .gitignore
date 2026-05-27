@@ -1,0 +1,52 @@
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Local configuration
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Kotlin
+*.class
+
+# Log files
+*.log
+
+# Keystore files
+*.jks
+*.keystore
+
+# Generated files
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Android
+/app/release/
+/app/debug/
+
+# Firebase
+google-services.json
+
+# NDK
+obj/
+
+# Temp
+tmp/
+temp/
+
+# Signing configs
+signing.properties
