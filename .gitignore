@@ -21,9 +21,11 @@ Thumbs.db
 
 # Kotlin
 *.class
+*.kotlin_module
 
 # Log files
 *.log
+*.hprof
 
 # Keystore files
 *.jks
@@ -33,10 +35,6 @@ Thumbs.db
 captures/
 .externalNativeBuild/
 .cxx/
-
-# Android
-/app/release/
-/app/debug/
 
 # Firebase
 google-services.json
@@ -50,3 +48,9 @@ temp/
 
 # Signing configs
 signing.properties
+
+# Secrets / env
+.env
+
+# APKs
+*.apk
