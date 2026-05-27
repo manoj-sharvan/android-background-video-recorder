@@ -5,5 +5,6 @@ import com.manoj.backgroundvideorecorder.features.schedules.domain.model.Schedul
 data class SchedulesState(
     val schedules: List<Schedule> = emptyList(),
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val exactAlarmPermissionGranted: Boolean = false
 )

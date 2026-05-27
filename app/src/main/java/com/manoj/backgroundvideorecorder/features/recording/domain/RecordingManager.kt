@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface RecordingManager {
     val isRecording: StateFlow<Boolean>
+    val isPaused: StateFlow<Boolean>
     val recordingDurationSeconds: StateFlow<Long>
     val recordingError: StateFlow<String?>
     val currentCameraFacing: StateFlow<Int>
@@ -14,6 +15,9 @@ interface RecordingManager {
 
     fun startRecording(config: RecordingConfig, lifecycleOwner: LifecycleOwner)
     fun stopRecording()
+    fun pauseRecording()
+    fun resumeRecording()
     fun switchCamera(lifecycleOwner: LifecycleOwner)
     fun setStealthMode(enabled: Boolean)
+    fun shutdownGracefully()
 }

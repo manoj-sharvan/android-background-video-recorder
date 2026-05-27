@@ -2,6 +2,8 @@ package com.manoj.backgroundvideorecorder.features.schedules.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.manoj.backgroundvideorecorder.features.schedules.domain.ScheduleManager
+import com.manoj.backgroundvideorecorder.features.schedules.domain.ScheduleValidator
 import com.manoj.backgroundvideorecorder.features.schedules.domain.model.Schedule
 import com.manoj.backgroundvideorecorder.features.schedules.domain.usecase.AddScheduleUseCase
 import com.manoj.backgroundvideorecorder.features.schedules.domain.usecase.DeleteScheduleUseCase
@@ -20,7 +22,8 @@ import javax.inject.Inject
 class SchedulesViewModel @Inject constructor(
     private val getSchedulesUseCase: GetSchedulesUseCase,
     private val addScheduleUseCase: AddScheduleUseCase,
-    private val deleteScheduleUseCase: DeleteScheduleUseCase
+    private val deleteScheduleUseCase: DeleteScheduleUseCase,
+    private val scheduleManager: ScheduleManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SchedulesState())
@@ -43,20 +46,45 @@ class SchedulesViewModel @Inject constructor(
         }
     }
 
-    fun addSchedule(timeMillis: Long, durationSeconds: Int, isRecurring: Boolean) {
+    fun addSchedule(
+        timeMillis: Long,
+        durationSeconds: Int,
+        isRecurring: Boolean,
+        repeatType: String = "NONE",
+        daysOfWeek: String = ""
+    ) {
         viewModelScope.launch {
             val newSchedule = Schedule(
                 scheduledTimeMillis = timeMillis,
                 durationSeconds = durationSeconds,
-                isRecurring = isRecurring
+                isRecurring = isRecurring,
+                repeatType = repeatType,
+                daysOfWeek = daysOfWeek
             )
-            addScheduleUseCase(newSchedule)
+            val validationResult = ScheduleValidator.validate(newSchedule, _state.value.schedules)
+            if (validationResult is ScheduleValidator.ValidationResult.Error) {
+                _state.update { it.copy(errorMessage = validationResult.message) }
+                return@launch
+            }
+            _state.update { it.copy(errorMessage = null) }
+            val generatedId = addScheduleUseCase(newSchedule)
+            val scheduledWithId = newSchedule.copy(id = generatedId)
+            scheduleManager.scheduleAlarm(scheduledWithId)
         }
     }
 
     fun deleteSchedule(schedule: Schedule) {
         viewModelScope.launch {
             deleteScheduleUseCase(schedule)
+            scheduleManager.cancelAlarm(schedule)
         }
+    }
+
+    fun updateExactAlarmPermission(granted: Boolean) {
+        _state.update { it.copy(exactAlarmPermissionGranted = granted) }
+    }
+
+    fun clearError() {
+        _state.update { it.copy(errorMessage = null) }
     }
 }

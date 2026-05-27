@@ -13,6 +13,8 @@ import com.manoj.backgroundvideorecorder.features.settings.presentation.Settings
 import com.manoj.backgroundvideorecorder.features.settings.presentation.SettingsViewModel
 import com.manoj.backgroundvideorecorder.features.storage.presentation.StorageScreen
 import com.manoj.backgroundvideorecorder.features.storage.presentation.StorageViewModel
+import com.manoj.backgroundvideorecorder.features.security.presentation.SecurityScreen
+import com.manoj.backgroundvideorecorder.features.security.presentation.SecurityViewModel
 
 @Composable
 fun AppNavGraph(
@@ -21,6 +23,7 @@ fun AppNavGraph(
     schedulesViewModel: SchedulesViewModel,
     storageViewModel: StorageViewModel,
     settingsViewModel: SettingsViewModel,
+    securityViewModel: SecurityViewModel,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -36,6 +39,9 @@ fun AppNavGraph(
         }
         composable(Screen.Storage.route) {
             StorageScreen(viewModel = storageViewModel)
+        }
+        composable(Screen.Security.route) {
+            SecurityScreen(viewModel = securityViewModel)
         }
         composable(Screen.Settings.route) {
             SettingsScreen(viewModel = settingsViewModel)

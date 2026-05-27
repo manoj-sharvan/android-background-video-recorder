@@ -35,12 +35,67 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.BackgroundVideoRecorder">
+            android:theme="@style/Theme.BackgroundVideoRecorder" />
+
+        <!-- Real app launcher alias (enabled by default) -->
+        <activity-alias
+            android:name=".MainActivityReal"
+            android:targetActivity=".MainActivity"
+            android:label="@string/app_name"
+            android:icon="@android:drawable/sym_def_app_icon"
+            android:roundIcon="@android:drawable/sym_def_app_icon"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+
+        <!-- Disguise: Calculator -->
+        <activity-alias
+            android:name=".MainActivityCalculator"
+            android:targetActivity=".MainActivity"
+            android:label="Calculator"
+            android:icon="@android:drawable/ic_menu_compass"
+            android:roundIcon="@android:drawable/ic_menu_compass"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Disguise: Notes -->
+        <activity-alias
+            android:name=".MainActivityNotes"
+            android:targetActivity=".MainActivity"
+            android:label="Notes"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:roundIcon="@android:drawable/ic_menu_edit"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Disguise: Calendar -->
+        <activity-alias
+            android:name=".MainActivityCalendar"
+            android:targetActivity=".MainActivity"
+            android:label="Calendar"
+            android:icon="@android:drawable/ic_menu_today"
+            android:roundIcon="@android:drawable/ic_menu_today"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <!-- Foreground Service for background recording -->
         <service
@@ -57,6 +112,44 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="com.manoj.backgroundvideorecorder.ACTION_START_SCHEDULED_RECORDING" />
             </intent-filter>
+        </receiver>
+
+        <!-- Secure File Provider for file sharing -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.manoj.backgroundvideorecorder.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Quick Settings Tile Service -->
+        <service
+            android:name=".background.service.RecordingTileService"
+            android:label="@string/tile_label"
+            android:icon="@android:drawable/ic_menu_camera"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- App Widget Provider -->
+        <receiver
+            android:name=".background.receiver.RecordingWidgetProvider"
+            android:label="@string/widget_label"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.manoj.backgroundvideorecorder.ACTION_WIDGET_UPDATE" />
+                <action android:name="com.manoj.backgroundvideorecorder.ACTION_WIDGET_TOGGLE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/recording_widget_info" />
         </receiver>
 
     </application>

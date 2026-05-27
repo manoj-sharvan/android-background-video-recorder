@@ -18,4 +18,16 @@ interface VideoRecordDao {
 
     @Delete
     suspend fun deleteVideoRecord(videoRecord: VideoRecordEntity)
+
+    @Query("SELECT * FROM video_records WHERE isProtected = 0 ORDER BY timestamp ASC")
+    suspend fun getUnprotectedVideoRecordsAsc(): List<VideoRecordEntity>
+
+    @Query("SELECT * FROM video_records")
+    suspend fun getAllVideoRecordsList(): List<VideoRecordEntity>
+
+    @Query("UPDATE video_records SET isProtected = :isProtected WHERE id = :id")
+    suspend fun updateProtectionStatus(id: Long, isProtected: Boolean)
+
+    @Query("DELETE FROM video_records WHERE id = :id")
+    suspend fun deleteVideoRecordById(id: Long)
 }

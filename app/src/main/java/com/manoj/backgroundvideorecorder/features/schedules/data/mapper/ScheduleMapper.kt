@@ -10,7 +10,13 @@ fun ScheduleEntity.toDomain(): Schedule {
         durationSeconds = durationSeconds,
         isRecurring = isRecurring,
         intervalMillis = intervalMillis,
-        isEnabled = isEnabled
+        isEnabled = isEnabled,
+        repeatType = repeatType,
+        daysOfWeek = daysOfWeek,
+        lastTriggeredTimeMillis = lastTriggeredTimeMillis,
+        lastRunStatus = lastRunStatus,
+        lastError = lastError,
+        nextTriggerTime = nextTriggerTime
     )
 }
 
@@ -21,6 +27,12 @@ fun Schedule.toEntity(): ScheduleEntity {
         durationSeconds = durationSeconds,
         isRecurring = isRecurring,
         intervalMillis = intervalMillis,
-        isEnabled = isEnabled
+        isEnabled = isEnabled,
+        repeatType = repeatType,
+        daysOfWeek = daysOfWeek,
+        lastTriggeredTimeMillis = lastTriggeredTimeMillis,
+        lastRunStatus = lastRunStatus,
+        lastError = lastError,
+        nextTriggerTime = nextTriggerTime
     )
 }

@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.manoj.backgroundvideorecorder.core.database.AppDatabase
 import com.manoj.backgroundvideorecorder.core.database.dao.ScheduleDao
 import com.manoj.backgroundvideorecorder.core.database.dao.VideoRecordDao
+import com.manoj.backgroundvideorecorder.core.database.dao.AuditLogDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,7 +26,10 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "background_video_recorder.db"
-        ).fallbackToDestructiveMigration().build()
+        )
+        .addMigrations(AppDatabase.MIGRATION_2_3)
+        .fallbackToDestructiveMigration()
+        .build()
     }
 
     @Provides
@@ -38,5 +42,11 @@ object DatabaseModule {
     @Singleton
     fun provideVideoRecordDao(database: AppDatabase): VideoRecordDao {
         return database.videoRecordDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAuditLogDao(database: AppDatabase): AuditLogDao {
+        return database.auditLogDao()
     }
 }

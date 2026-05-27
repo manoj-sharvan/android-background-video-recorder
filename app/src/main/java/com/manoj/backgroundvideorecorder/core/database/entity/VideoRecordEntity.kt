@@ -11,5 +11,9 @@ data class VideoRecordEntity(
     val durationMillis: Long,
     val fileSize: Long,
     val timestamp: Long,
-    val isStealth: Boolean
+    val isStealth: Boolean,
+    val isProtected: Boolean = false,
+    val isEncrypted: Boolean = false,
+    val encryptionVersion: Int = 0,
+    val encryptionTimestamp: Long = 0L
 )

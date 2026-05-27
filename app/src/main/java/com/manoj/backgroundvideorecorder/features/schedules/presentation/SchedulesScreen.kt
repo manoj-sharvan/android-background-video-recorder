@@ -1,5 +1,11 @@
 package com.manoj.backgroundvideorecorder.features.schedules.presentation
 
+import android.app.AlarmManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,8 +21,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -26,14 +33,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.manoj.backgroundvideorecorder.core.designsystem.theme.DarkGreen
 import com.manoj.backgroundvideorecorder.core.designsystem.theme.SteelGray
 import com.manoj.backgroundvideorecorder.features.schedules.domain.model.Schedule
 import java.text.SimpleDateFormat
@@ -45,14 +55,32 @@ fun SchedulesScreen(
     viewModel: SchedulesViewModel
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+
+    // Dynamically check exact alarm permissions on enter and resume
+    LaunchedEffect(Unit) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val hasExactPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            alarmManager.canScheduleExactAlarms()
+        } else {
+            true
+        }
+        viewModel.updateExactAlarmPermission(hasExactPermission)
+    }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // Pre-fill a schedule for demo/foundation testing (5 minutes from now)
-                    val futureTime = System.currentTimeMillis() + (5 * 60 * 1000)
-                    viewModel.addSchedule(futureTime, 30, false)
+                    // Pre-fill a demo daily recurring schedule (1 minute in the future)
+                    val futureTime = System.currentTimeMillis() + (60 * 1000)
+                    viewModel.addSchedule(
+                        timeMillis = futureTime,
+                        durationSeconds = 15,
+                        isRecurring = true,
+                        repeatType = "DAILY",
+                        daysOfWeek = ""
+                    )
                 },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -78,6 +106,96 @@ fun SchedulesScreen(
                 modifier = Modifier.padding(vertical = 12.dp)
             )
 
+            // Validation error banner
+            state.errorMessage?.let { error ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { viewModel.clearError() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(text = "Dismiss", fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+
+            // Dynamic exact alarm permission banner
+            if (!state.exactAlarmPermissionGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Exact Alarm Permission Required",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Text(
+                                text = "Enable this permission to trigger background recordings precisely on schedule.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                                    data = Uri.parse("package:${context.packageName}")
+                                }
+                                context.startActivity(intent)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(text = "Grant", fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+
             if (state.schedules.isEmpty()) {
                 Column(
                     modifier = Modifier
@@ -87,7 +205,7 @@ fun SchedulesScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Default.List,
+                        imageVector = Icons.AutoMirrored.Filled.List,
                         contentDescription = "No Schedules",
                         tint = SteelGray,
                         modifier = Modifier.size(64.dp)
@@ -101,7 +219,7 @@ fun SchedulesScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Tap the floating action button below to add a demo schedule (configured for 5 minutes in the future).",
+                        text = "Tap the floating action button below to schedule an automatic daily recording in 1 minute.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = SteelGray,
                         textAlign = TextAlign.Center,
@@ -127,7 +245,6 @@ fun SchedulesScreen(
     }
 }
 
-// Extension to allow quick size modifier
 private fun Modifier.size(size: androidx.compose.ui.unit.Dp) = this.width(size).height(size)
 
 @Composable
@@ -154,24 +271,51 @@ fun ScheduleItemCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Start: $formattedTime",
+                    text = "Trigger: $formattedTime",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
                         text = "Duration: ${schedule.durationSeconds}s",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (schedule.isRecurring) "Recurring" else "One-time",
+                        text = "Repeat: ${schedule.repeatType}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (schedule.repeatType != "NONE") MaterialTheme.colorScheme.primary else SteelGray
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val statusColor = when (schedule.lastRunStatus) {
+                        "SUCCESS" -> DarkGreen
+                        "FAILED" -> MaterialTheme.colorScheme.error
+                        else -> SteelGray
+                    }
+                    Text(
+                        text = "Status: ${schedule.lastRunStatus}",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = if (schedule.isRecurring) MaterialTheme.colorScheme.primary else SteelGray
+                        color = statusColor
                     )
+                    if (schedule.lastError != null) {
+                        Text(
+                            text = "Error: ${schedule.lastError}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            maxLines = 1
+                        )
+                    }
                 }
             }
 

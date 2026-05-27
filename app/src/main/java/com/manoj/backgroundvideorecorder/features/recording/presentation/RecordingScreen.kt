@@ -196,17 +196,17 @@ fun RecordingScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                if (state.isStealthMode) {
+                if (state.isStealthMode || state.isHiddenPreview) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = Icons.Default.Info,
-                            contentDescription = "Stealth Mode",
+                            contentDescription = "Preview Hidden",
                             tint = SteelGray,
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Stealth Mode Active\nPreview is Hidden",
+                            text = if (state.isStealthMode) "Stealth Mode Active\nPreview is Hidden" else "Hidden Preview Mode Active\nNo Live Feed Shown",
                             color = SteelGray,
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyMedium

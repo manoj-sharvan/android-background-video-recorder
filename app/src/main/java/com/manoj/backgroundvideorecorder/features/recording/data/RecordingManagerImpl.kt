@@ -48,6 +48,9 @@ class RecordingManagerImpl @Inject constructor(
     private val _isRecording = MutableStateFlow(false)
     override val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
 
+    private val _isPaused = MutableStateFlow(false)
+    override val isPaused: StateFlow<Boolean> = _isPaused.asStateFlow()
+
     private val _recordingDurationSeconds = MutableStateFlow(0L)
     override val recordingDurationSeconds: StateFlow<Long> = _recordingDurationSeconds.asStateFlow()
 
@@ -64,6 +67,9 @@ class RecordingManagerImpl @Inject constructor(
     override val recordingEvents: SharedFlow<RecordingEvent> = _recordingEvents.asSharedFlow()
 
     private var activeRecording: Recording? = null
+
+    private var lastActionTimeMs = 0L
+    private val actionCooldownMs = 1000L
     private var videoCapture: VideoCapture<Recorder>? = null
 
     private var timerJob: Job? = null
@@ -104,11 +110,19 @@ class RecordingManagerImpl @Inject constructor(
     override fun startRecording(config: RecordingConfig, lifecycleOwner: LifecycleOwner) {
         scope.launch {
             recordingMutex.withLock {
+                val now = System.currentTimeMillis()
+                if (now - lastActionTimeMs < actionCooldownMs) {
+                    AppLogger.w("RecordingManager: Action ignored due to cooldown.")
+                    return@launch
+                }
+                lastActionTimeMs = now
+
                 if (_isRecording.value) {
                     AppLogger.w("RecordingManager: Start requested, but a session is already active.")
                     return@launch
                 }
                 _recordingError.value = null
+                _isPaused.value = false
                 currentConfig = config
                 _currentCameraFacing.value = config.cameraFacing
                 _isStealthMode.value = config.stealthMode
@@ -166,6 +180,7 @@ class RecordingManagerImpl @Inject constructor(
                             when (recordEvent) {
                                 is VideoRecordEvent.Start -> {
                                     _isRecording.value = true
+                                    _isPaused.value = false
                                     retryCount = 0 // Reset retries on successful startup
                                     recordingStartTime = System.currentTimeMillis()
                                     startTimer(lifecycleOwner)
@@ -173,6 +188,7 @@ class RecordingManagerImpl @Inject constructor(
                                 }
                                 is VideoRecordEvent.Finalize -> {
                                     _isRecording.value = false
+                                    _isPaused.value = false
                                     stopTimer()
                                     if (recordEvent.hasError()) {
                                         val errorMsg = "VideoRecordEvent.Finalize error code: ${recordEvent.error}"
@@ -235,10 +251,54 @@ class RecordingManagerImpl @Inject constructor(
     override fun stopRecording() {
         scope.launch {
             recordingMutex.withLock {
+                val now = System.currentTimeMillis()
+                if (now - lastActionTimeMs < actionCooldownMs) {
+                    AppLogger.w("RecordingManager: Action ignored due to cooldown.")
+                    return@launch
+                }
+                lastActionTimeMs = now
+
                 activeRecording?.stop()
                 activeRecording = null
                 _isRecording.value = false
+                _isPaused.value = false
                 stopTimer()
+            }
+        }
+    }
+
+    override fun pauseRecording() {
+        scope.launch {
+            recordingMutex.withLock {
+                val now = System.currentTimeMillis()
+                if (now - lastActionTimeMs < actionCooldownMs) {
+                    AppLogger.w("RecordingManager: Action ignored due to cooldown.")
+                    return@launch
+                }
+                lastActionTimeMs = now
+
+                if (!_isRecording.value || _isPaused.value) return@launch
+                activeRecording?.pause()
+                _isPaused.value = true
+                AppLogger.i("RecordingManager: Video recording paused.")
+            }
+        }
+    }
+
+    override fun resumeRecording() {
+        scope.launch {
+            recordingMutex.withLock {
+                val now = System.currentTimeMillis()
+                if (now - lastActionTimeMs < actionCooldownMs) {
+                    AppLogger.w("RecordingManager: Action ignored due to cooldown.")
+                    return@launch
+                }
+                lastActionTimeMs = now
+
+                if (!_isRecording.value || !_isPaused.value) return@launch
+                activeRecording?.resume()
+                _isPaused.value = false
+                AppLogger.i("RecordingManager: Video recording resumed.")
             }
         }
     }
@@ -272,6 +332,7 @@ class RecordingManagerImpl @Inject constructor(
         timerJob = scope.launch {
             while (true) {
                 delay(1000)
+                if (_isPaused.value) continue
                 _recordingDurationSeconds.update { duration ->
                     val nextDuration = duration + 1
                     val config = currentConfig
@@ -296,5 +357,18 @@ class RecordingManagerImpl @Inject constructor(
     private fun stopTimer() {
         timerJob?.cancel()
         timerJob = null
+    }
+
+    override fun shutdownGracefully() {
+        try {
+            activeRecording?.stop()
+            activeRecording?.close()
+        } catch (e: Exception) {
+            // fail-silent
+        }
+        activeRecording = null
+        _isRecording.value = false
+        _isPaused.value = false
+        stopTimer()
     }
 }
