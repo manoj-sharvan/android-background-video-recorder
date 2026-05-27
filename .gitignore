@@ -51,6 +51,3 @@ signing.properties
 
 # Secrets / env
 .env
-
-# APKs
-*.apk
