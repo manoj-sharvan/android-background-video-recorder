@@ -28,7 +28,7 @@ fun BvrCard(
         CardVariant.NORMAL -> DarkSurface
         CardVariant.WARNING -> Color(0xFFF57C00).copy(alpha = 0.2f)
         CardVariant.SUCCESS -> DarkSuccess.copy(alpha = 0.2f)
-        CardVariant.Danger -> DarkDanger.copy(alpha = 0.2f)
+        CardVariant.DANGER  -> DarkDanger.copy(alpha = 0.2f)
         else -> DarkSurface
     }
 

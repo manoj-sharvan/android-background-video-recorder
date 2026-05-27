@@ -33,14 +33,14 @@ fun StorageAnalyticsCard(
             Spacer(modifier = Modifier.height(16.dp))
             
             LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = DarkPrimary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+    progress = progress,
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(8.dp)
+        .clip(RoundedCornerShape(4.dp)),
+    color = DarkPrimary,
+    trackColor = MaterialTheme.colorScheme.surfaceVariant
+)
             
             Spacer(modifier = Modifier.height(12.dp))
             
